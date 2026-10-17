@@ -12,10 +12,11 @@ LOGDIR="${RUNNER_TEMP:-/tmp}"
 
 extract_for() {
   local f="$1"
-  grep -A 40 -m 1 "What went wrong" "$f" 2>/dev/null
-  grep -E "^e: |Unresolved reference|Could not (resolve|find|GET|create)|FAILURE: " "$f" 2>/dev/null | head -n 10
+  # Compiler errors first: the annotation budget is finite and the Gradle stack trace is long.
+  grep -E "^e: |^> Task .*FAILED|FAILURE: " "$f" 2>/dev/null | head -n 25
+  grep -A 8 -m 1 "What went wrong" "$f" 2>/dev/null
   echo "--- tail ---"
-  tail -n 22 "$f"
+  tail -n 12 "$f"
 }
 
 # Human-readable copy in the job summary (visible in the Actions UI).

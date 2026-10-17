@@ -28,7 +28,9 @@ class AndroidKeyStoreWrapper(
 
     private fun loadKey(): SecretKey {
         val ks = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        ks.getEntry(alias, null)?.secretKey?.let { return it }
+        // KeyStore.Entry itself exposes nothing; AndroidKeyStore hands symmetric keys back
+        // through getKey(), which is the only accessor that works for every keystore provider.
+        (ks.getKey(alias, null) as? SecretKey)?.let { return it }
 
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
         generator.init(
@@ -46,7 +48,7 @@ class AndroidKeyStoreWrapper(
                 .build(),
         )
         generator.generateKey()
-        return ks.getEntry(alias, null)?.secretKey
+        return (ks.getKey(alias, null) as? SecretKey)
             ?: throw IllegalStateException("keystore rejected key generation")
     }
 
