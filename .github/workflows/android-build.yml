@@ -118,11 +118,10 @@ jobs:
             {
               echo "#### $(basename "$a")  $(stat -c%s "$a") bytes  sha256=$(sha256sum "$a" | cut -c1-64)"
               "$AAPT2" dump badging "$a" 2>/dev/null |
-                grep -E "^(package:|sdkVersion:|targetSdkVersion:|uses-permission|application-label|launchable-activity|feature)" || true
+                grep -E "^(package:|sdkVersion:|targetSdkVersion:|uses-permission:|application-label:|launchable-activity:)" || true
               echo "entries: $(unzip -l "$a" | tail -1 | awk '{print $2}')"
               if [ -n "${APKSIGNER:-}" ]; then
-                "$APKSIGNER" verify --print-certs "$a" 2>&1 |
-                  grep -E "^Verifies|Signer #1 certificate SHA-256|DOES NOT VERIFY|verified using" || true
+                "$APKSIGNER" verify --print-certs -v "$a" 2>&1 | head -n 16 || true
               fi
               echo
             } | tee -a "$summary"
