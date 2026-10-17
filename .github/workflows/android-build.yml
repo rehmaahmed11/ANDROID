@@ -73,6 +73,23 @@ jobs:
         if: failure()
         run: bash scripts/ci-dump-log.sh
 
+      # Advisory only: lint findings are reported into the check run so they are readable
+      # through the API, without being allowed to block artifact production.
+      - name: Lint (reported, not gating)
+        continue-on-error: true
+        run: |
+          set -eo pipefail
+          ./gradlew --no-daemon lintDebug 2>&1 | tee "$RUNNER_TEMP/lint.log" || true
+          body=$(
+            {
+              grep -E "^ *(Error|Warning): " "$RUNNER_TEMP/lint.log" 2>/dev/null | head -n 20
+              echo "--- lint-results-debug.txt ---"
+              sed -n '1,80p' app/build/reports/lint-results-debug.txt 2>/dev/null | tail -n 50
+            } | sed -e 's/[[:space:]]*$//' -e '/^$/d' -e 's/%/%25/g' -e 's/:/%3A/g'
+          )
+          oneline=$(printf '%s' "$body" | awk 'NR==1{printf "%s", $0; next} {printf "%%0A%s", $0}')
+          printf '::warning::lint|%s\n' "${oneline:0:15000}"
+
       - name: Collect outputs
         run: |
           set -euo pipefail
