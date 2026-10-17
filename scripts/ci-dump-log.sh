@@ -1,32 +1,44 @@
 #!/usr/bin/env bash
-# Surfaces the Gradle failure into channels that are readable without the Actions log endpoint:
-# the job summary (GET /repos/{owner}/{repo}/actions/runs/{id}/summary) and check-run
-# annotations. Runner logs are hosted on a blob store that many CI-adjacent environments cannot
-# reach, so without this a red build is undiagnosable from the API alone.
+# Puts the part of the Gradle output that explains a failure into a check-run annotation.
+#
+# Why not just read the log: the runner log archive is served from a blob host that is
+# unreachable from restricted environments, and the job-summary endpoint is not always readable
+# by a CI token. /check-runs/{id}/annotations is plain api.github.com, so that is the channel
+# that survives. GitHub truncates a check run at 10 annotations, which is why the whole extract
+# travels as ONE annotation with %0A as the line separator.
 set -uo pipefail
 
-SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
+LOGDIR="${RUNNER_TEMP:-/tmp}"
+
+extract_for() {
+  local f="$1"
+  grep -A 40 -m 1 "What went wrong" "$f" 2>/dev/null
+  grep -E "^e: |Unresolved reference|Could not (resolve|find|GET|create)|FAILURE: " "$f" 2>/dev/null | head -n 10
+  echo "--- tail ---"
+  tail -n 22 "$f"
+}
+
+# Human-readable copy in the job summary (visible in the Actions UI).
 {
   echo "### Gradle failure extract"
-  for f in "${RUNNER_TEMP:-/tmp}"/test.log "${RUNNER_TEMP:-/tmp}"/assemble.log; do
-    [ -f "$f" ] || continue
+  for f in "$LOGDIR/test.log" "$LOGDIR/assemble.log"; do
+    [ -s "$f" ] || continue
     echo
     echo "#### $(basename "$f")"
     echo '```'
-    grep -E "^e: |^> Task .*FAILED|What went wrong|Execution failed|Caused by:|error:|FAILED|Unresolved reference" "$f" \
-      | head -n 60
-    echo "----- last 40 lines -----"
-    tail -n 40 "$f"
+    extract_for "$f"
     echo '```'
   done
-} >>"$SUMMARY"
+} >>"${GITHUB_STEP_SUMMARY:-/dev/stdout}"
 
-for f in "${RUNNER_TEMP:-/tmp}"/test.log "${RUNNER_TEMP:-/tmp}"/assemble.log; do
-  [ -f "$f" ] || continue
-  grep -E "^e: |Unresolved reference|^> Task .*FAILED|What went wrong|Execution failed" "$f" |
-    head -n 25 |
-    while IFS= read -r line; do
-      safe=$(printf '%s' "$line" | sed 's/%/%25/g; s/:/%3A/g' | cut -c1-500)
-      printf '::error::%s\n' "$safe"
-    done
+# Machine-readable copy as annotations.
+for f in "$LOGDIR/test.log" "$LOGDIR/assemble.log"; do
+  [ -s "$f" ] || continue
+  name=$(basename "$f")
+  body=$(extract_for "$f" | sed -e 's/[[:space:]]*$//' -e '/^$/d')
+  [ -n "$body" ] || continue
+  escaped=$(printf '%s' "$body" | sed -e 's/%/%25/g' -e 's/:/%3A/g')
+  oneline=$(printf '%s' "$escaped" | awk 'NR==1{printf "%s", $0; next} {printf "%%0A%s", $0}')
+  printf '::error::%s\n' "${name}|${oneline:0:16000}"
 done
+exit 0

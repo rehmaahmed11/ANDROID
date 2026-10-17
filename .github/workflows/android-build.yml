@@ -59,12 +59,12 @@ jobs:
       - name: Unit tests (JVM, no emulator)
         run: |
           set -eo pipefail
-          ./gradlew --no-daemon testDebugUnitTest 2>&1 | tee "$RUNNER_TEMP/test.log"
+          ./gradlew --no-daemon --stacktrace testDebugUnitTest 2>&1 | tee "$RUNNER_TEMP/test.log"
 
       - name: Assemble debug + release APKs
         run: |
           set -eo pipefail
-          ./gradlew --no-daemon assembleDebug assembleRelease 2>&1 | tee "$RUNNER_TEMP/assemble.log"
+          ./gradlew --no-daemon --stacktrace assembleDebug assembleRelease 2>&1 | tee "$RUNNER_TEMP/assemble.log"
 
       - name: Surface the failure in the job summary and annotations
         if: failure()
