@@ -24,7 +24,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
+      # Both variables must resolve to the same directory or AGP aborts during configuration,
+      # because the runner image pre-sets ANDROID_SDK_ROOT to its own preinstalled SDK.
       ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
 
     steps:
       - name: Check out ${{ github.ref_name }}
