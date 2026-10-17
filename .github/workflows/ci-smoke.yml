@@ -1,0 +1,9 @@
+name: smoke control
+on:
+  push:
+    branches: ['arena/**']
+jobs:
+  hello:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "hello from runner; java is $(command -v java || echo none)"; echo "ANDROID_HOME=${ANDROID_HOME:-unset}"; ls /usr/local/lib/android/sdk 2>/dev/null | head
