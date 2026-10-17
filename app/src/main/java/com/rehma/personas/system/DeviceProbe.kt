@@ -131,7 +131,7 @@ object DeviceProbe {
 
     private fun currentUserIdentity(context: Context): Capability {
         val um = context.getSystemService(UserManager::class.java)
-        val inProfile = runCatching { um?.isManagedProfile == true }.getOrDefault(false)
+        val inProfile = isManagedProfile(um)
         // Android assigns uid = userId * 100000 + appId, so the owning user id falls out of
         // our own uid without touching a hidden API.
         val userId = Process.myUid() / 100000
@@ -208,6 +208,19 @@ object DeviceProbe {
                 "requires `adb shell dpm set-device-owner` on a factory-reset device with no " +
                 "accounts, which is why the app asks for it instead of assuming it.",
         )
+    }
+
+    /**
+     * `UserManager.isManagedProfile()` only became public in API 30 (lint: NewApi). Below that the
+     * method still exists in the framework, so it is reached reflectively and reported as false
+     * when the build refuses - a persona's state is never guessed from an unavailable probe.
+     */
+    private fun isManagedProfile(um: UserManager?): Boolean {
+        if (um == null) return false
+        if (Build.VERSION.SDK_INT >= 30) return runCatching { um.isManagedProfile }.getOrDefault(false)
+        return runCatching {
+            UserManager::class.java.getMethod("isManagedProfile").invoke(um) as? Boolean == true
+        }.getOrDefault(false)
     }
 
     private fun permissionName(result: Int) = when (result) {

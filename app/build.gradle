@@ -41,6 +41,11 @@ android {
         }
     }
 
+    // Output names stay stable (app-release.apk, never app-release-unsigned.apk) so the README
+    // and the release notes can point at one file. AGP does not sign a release build that has no
+    // signingConfig: that artifact is not installable, so the fallback below is load-bearing and
+    // the CI verification step asserts every published APK passes `apksigner verify`.
+
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
@@ -51,9 +56,7 @@ android {
             // R8 left off deliberately: nothing here needs shrinking, and a readable
             // stack trace beats 300 kB when you are debugging a sideloaded APK.
             minifyEnabled false
-            if (hasReleaseKeystore) {
-                signingConfig signingConfigs.release
-            }
+            signingConfig hasReleaseKeystore ? signingConfigs.release : signingConfigs.debug
         }
     }
 

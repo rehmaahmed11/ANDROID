@@ -135,6 +135,17 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           oneline=$(sed -e 's/%/%25/g' -e 's/:/%3A/g' "$summary" | awk 'NR==1{printf "%s",$0;next}{printf "%%0A%s",$0}')
           printf '::notice::apk-verification|%s\n' "${oneline:0:15000}"
+          # An unsigned APK builds fine and simply will not install, which is the failure mode
+          # that would otherwise reach a user as "the app is broken". Refuse to publish it.
+          if [ -n "${APKSIGNER:-}" ]; then
+            for a in dist/*.apk; do
+              if ! "$APKSIGNER" verify "$a" >/dev/null 2>&1; then
+                echo "::error::$(basename "$a") does not verify with apksigner; refusing to publish" >&2
+                exit 1
+              fi
+            done
+            echo "all APKs pass 'apksigner verify'"
+          fi
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
