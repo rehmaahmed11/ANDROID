@@ -179,13 +179,27 @@ These are Android's limits, not laziness:
 * **No system-level enforcement of "person 2 cannot see person 1's apps"** — that is what the
   managed-profile route in §4 is for, if your firmware permits it.
 
-## 7. Verification status
+## 7. Verification status — what has actually been executed
 
-What has actually been executed at the time of writing:
+Nothing below is asserted from the armchair; each row is a CI result on commit `28e7674`
+([run 17](https://github.com/rehmaahmed11/ANDROID/actions/runs/39063307375), conclusion
+`success`), or an explicit "not done".
 
-* unit tests (`./gradlew testDebugUnitTest`) — run by CI on every push/PR; the badge and the
-  latest run in **Actions** are the evidence, not this file;
-* `assembleDebug` / `assembleRelease` — CI-produced APKs with published SHA-256;
-* behaviour on a physical Android 9 handset — **not verified here**; no device is attached to
-  this environment. That is why the app ships the self-test and the adb evidence screen: they
-  move the "is this true on *my* phone?" question from my word to your screen.
+| Claim | Evidence | Status |
+| --- | --- | --- |
+| The APK builds from this source | `assembleDebug` + `assembleRelease` green on `ubuntu-24.04`, AGP 8.5.2 / Gradle 8.7 / JDK 17 | **verified** |
+| The APK is installable-in-principle (signed, correct identity, right SDK floors) | `aapt2 dump badging`: `package: name='com.rehma.personas'`, `sdkVersion:'26'`, `targetSdkVersion:'28'`, `launchable-activity: com.rehma.personas.ui.MainActivity`; `apksigner verify`: `Verifies`, v2 scheme true, 1 signer | **verified** |
+| No dangerous permission was smuggled in | badging lists only the AndroidX-injected self-defined `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | **verified** |
+| Cryptographic isolation between personas holds (independently of Android) | 39 JUnit methods, incl. 10-case `IsolationSelfTest`, PBKDF2-HMAC-SHA256 known-answer vectors cross-checked against Python's `hashlib`, bit-flip/AEAD-tag rejection, ciphertext-swap rejection, key-rotation data preservation, wipe completeness | **verified** |
+| The firmware analysis reads the right things | lint + compiler enforce API floors (and caught one wrong one: `isManagedProfile` is public from 30, not 24 — now version-gated with a reflective fallback) | **verified** |
+| `IsolationSelfTest`, `DeviceProbe`, `AdbDiagnostics` behave on a real Android 9 handset | needs a device | **NOT verified** |
+| Real Android users can be created by this app | `CREATE_USERS`/`MANAGE_USERS` are `signature\|system`; ceiling is `config_multiuserMaximumUsers` | **impossible, and asserted as impossible** (§1–§2) |
+
+Two bugs were caught by verification instead of by me: the release variant built **unsigned**
+(`app-release-unsigned.apk`, `apksigner` → `DOES NOT VERIFY: Missing META-INF/MANIFEST.MF`), which
+would have been an APK that simply refuses to install, and the `NewApi` error above. The release
+build now falls back to debug signing when no `keystore.properties` exists, and CI exits non-zero if
+any published APK fails `apksigner verify`.
+
+The gap that remains — behaviour on physical Android 9 hardware — is deliberate to leave open
+rather than paper over: it is why §5 items 5–7 exist, so the person holding the phone measures it.

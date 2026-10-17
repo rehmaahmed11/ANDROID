@@ -4,6 +4,10 @@
   unprivileged install, which is the whole point: the permissions that would be needed to
   create real Android users (CREATE_USERS, MANAGE_USERS) are signature|system and cannot be
   granted to a sideloaded APK on a stock ROM.
+
+  (The merged manifest does end up with one entry, <applicationId>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION,
+  injected by AndroidX so its own receivers stay unexported. It is defined and held by this app
+  alone; CI prints `aapt2 dump badging` on every build so this claim stays checkable.)
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 

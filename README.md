@@ -19,8 +19,13 @@ What this app does instead, all inside what an unprivileged app is allowed to do
 | **Maybe enables** | A **managed (work) profile** — a genuine second Android user with separate apps and encryption, no root needed, if your firmware kept `android.software.managed_users`. The app checks, reports, and then hands you to the system's own provisioning flow. See [`docs/FEASIBILITY.md`](docs/FEASIBILITY.md) §4. |
 
 Requires Android 8.0+ (API 26). Built and tested for Android 9. No root, no custom recovery, no
-settings change, nothing written outside the app's own data directory. **Zero permissions declared**
-in the manifest.
+settings change, nothing written outside the app's own data directory.
+
+**The manifest declares no permissions.** The only `uses-permission` on the built APK is
+`com.rehma.personas.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, which the AndroidX build tools
+inject so that the library's own receivers stay unexported on newer APIs: it is defined by
+this app, granted to this app, and requests nothing from the user. `aapt2 dump badging` output
+proving this is published by CI on every build (see §6).
 
 ---
 
@@ -122,7 +127,29 @@ cannot be regenerated offline), JDK 17, `compileSdk 34`, `minSdk 26`, `targetSdk
 `targetSdk 28` is deliberate: it matches the OS generation this project is written for, and keeps
 scoped-storage and foreground-service churn out of a single-device utility.
 
-## 6. CI
+## 6. CI: what is actually verified
+
+Run 17 of [`Android build`](https://github.com/rehmaahmed11/ANDROID/actions/runs/39063307375)
+(commit `28e7674`) finished **success** with every step green. Concretely, on the runner:
+
+| check | result |
+| --- | --- |
+| `testDebugUnitTest` | 39 JUnit methods green, incl. the 10-case `IsolationSelfTest`, PBKDF2 known-answer vectors, codec tamper/tolerance cases, diagnostics verdicts |
+| `assembleDebug` + `assembleRelease` | `app-debug.apk` 5,663,527 B · `app-release.apk` 4,615,724 B |
+| `aapt2 dump badging` on the release APK | `package: name='com.rehma.personas' versionCode='1' versionName='1.0.0'`, `sdkVersion:'26'`, `targetSdkVersion:'28'`, `launchable-activity: com.rehma.personas.ui.MainActivity`, no permissions of ours |
+| `apksigner verify --print-certs` | `Verifies`, `Verified using v2 scheme (APK Signature Scheme v2): true`, 1 signer, `CN=Android Debug` |
+| published SHA-256 | release `c379568dfab5af86dc0cb4acd9456f1fae0ee559f77360fa98178135f582699a` |
+
+Two defects were found *by* that verification and fixed rather than shipped: the release variant was
+building **unsigned** (`app-release-unsigned.apk`, `DOES NOT VERIFY: Missing META-INF/MANIFEST.MF`) —
+an APK that cannot install — and `UserManager.isManagedProfile()` was called as if it were API 24
+when it is public from API 30. The verify step now exits non-zero if any published APK fails
+`apksigner verify`, so the first class of mistake cannot come back quietly.
+
+**Still not verified:** on-device behaviour on a real Android 9 handset (no device is attached to
+the build environment). That gap is why the app ships the self-test and the adb-evidence screen.
+
+## 7. Workflow definition
 
 [`.github/workflows/android-build.yml`](.github/workflows/android-build.yml) runs on **push to
 `main`** (i.e. on merge), on every PR into `main`, and on `workflow_dispatch`:
@@ -138,7 +165,7 @@ scoped-storage and foreground-service churn out of a single-device utility.
 The workflow has no signing secret, so it *cannot* publish an APK that impersonates a store upload;
 it is a sideload build. That is stated in the release notes as well as here.
 
-## 7. Layout
+## 8. Layout
 
 ```
 app/src/main/java/com/rehma/personas/
