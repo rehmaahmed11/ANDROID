@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The policy set this app could enforce as a profile owner. It deliberately asks for
+     nothing: no wipe, no camera, no password rules. Presence of the receiver is required to
+     provision a managed profile; the empty policy list is the honest statement that Personas
+     is not going to lock down your phone. -->
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-policies />
+</device-admin>

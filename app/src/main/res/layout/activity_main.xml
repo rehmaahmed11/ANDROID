@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/headline"
+            android:textColor="@color/ink"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/subhead"
+            style="@style/Body"
+            android:textColor="@color/ink_soft" />
+
+        <LinearLayout
+            android:id="@+id/deviceCard"
+            style="@style/Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="DEVICE · WHAT THE FIRMWARE ALLOWS"
+                style="@style/SectionTitle" />
+
+            <TextView
+                android:id="@+id/deviceSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Body"
+                android:text="Reading firmware limits…" />
+
+            <TextView
+                android:id="@+id/deviceDetail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                style="@style/Mono" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/profileCard"
+            style="@style/Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="PROFILES ON THIS PHONE"
+                style="@style/SectionTitle" />
+
+            <LinearLayout
+                android:id="@+id/profileList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/emptyHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/no_personas"
+                style="@style/Body"
+                android:textColor="@color/ink_soft" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/addButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_persona" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/diagnosticsButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/diagnostics" />
+
+            <Button
+                android:id="@+id/workProfileButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/work_profile" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/limit_heading"
+                style="@style/SectionTitle" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/limit_body"
+                style="@style/Body" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

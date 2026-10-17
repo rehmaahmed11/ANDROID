@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Backup is switched off in the manifest; these rules are the API 31+ equivalent so that a
+  later Android version cannot copy a persona's vault into a cloud backup. On Android 9 the
+  manifest flag alone is what applies.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="personas/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="file" path="personas/" />
+    </device-transfer>
+</data-extraction-rules>

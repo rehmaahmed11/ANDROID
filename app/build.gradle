@@ -1,0 +1,125 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+/*
+ * Optional release signing. Drop a keystore.properties in the repo root (git-ignored)
+ * with storeFile/storePassword/keyAlias/keyPassword to get a self-signed release APK.
+ * Without it, CI still produces a release APK signed with the debug key, which is all
+ * that is needed to sideload onto your own phone.
+ */
+def keystorePropsFile = rootProject.file("keystore.properties")
+def hasReleaseKeystore = keystorePropsFile.exists()
+
+android {
+    namespace 'com.rehma.personas'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.rehma.personas"
+        // API 26+ is where pinned launcher shortcuts (our per-profile home-screen icons)
+        // and the keystore APIs this app depends on are available. Runs on Android 9.
+        minSdk 26
+        // Targeting 28 (Android 9) on purpose: targeting 29+ would add scoped storage and
+        // background-start restrictions with no benefit for a single-device utility.
+        targetSdk 28
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            release {
+                def p = new Properties()
+                keystorePropsFile.withInputStream { p.load(it) }
+                storeFile rootProject.file(p.getProperty('storeFile'))
+                storePassword p.getProperty('storePassword')
+                keyAlias p.getProperty('keyAlias')
+                keyPassword p.getProperty('keyPassword')
+            }
+        }
+    }
+
+    // Output names stay stable (app-release.apk, never app-release-unsigned.apk) so the README
+    // and the release notes can point at one file. AGP does not sign a release build that has no
+    // signingConfig: that artifact is not installable, so the fallback below is load-bearing and
+    // the CI verification step asserts every published APK passes `apksigner verify`.
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+            minifyEnabled false
+        }
+        release {
+            // R8 left off deliberately: nothing here needs shrinking, and a readable
+            // stack trace beats 300 kB when you are debugging a sideloaded APK.
+            minifyEnabled false
+            signingConfig hasReleaseKeystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    lint {
+        // `assembleRelease` normally runs lintVitalRelease, which aborts the build on any
+        // fatal-severity finding. This app deliberately calls OEM-visible platform resources,
+        // hidden-but-warned-list APIs and provisioning intents, so it has findings by design;
+        // CI still runs lint and reports it as an annotation, it just cannot eat the APK.
+        checkReleaseBuilds false
+        abortOnError false
+        textReport true
+        warningsAsErrors false
+    }
+}
+
+// Deliberately small: three AndroidX artifacts and nothing else. Every persona row is a
+// hand-inflated view in a LinearLayout (max 8 profiles), so RecyclerView, ConstraintLayout
+// and the lifecycle artifacts are not needed - and each dependency removed is one less way
+// for a build against a corporate mirror to fail.
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+
+    testImplementation 'junit:junit:4.13.2'
+}
+
+/**
+ * Writes SHA-256 of every produced APK, so the file installed on the phone can be proven
+ * to be byte-for-byte the file CI built.
+ */
+def apkChecksums = tasks.register('apkChecksums') {
+    doLast {
+        def outDir = file("${project.layout.buildDirectory.get().asFile}/outputs/apk")
+        if (!outDir.exists()) {
+            println "no apk output dir at ${outDir}"
+            return
+        }
+        def sums = new StringBuilder()
+        fileTree(outDir).matching { include '**/*.apk' }.sort { it.absolutePath }.each { f ->
+            def md = java.security.MessageDigest.getInstance("SHA-256").digest(f.bytes)
+                    .collect { String.format("%02x", it) }.join()
+            sums.append(md).append("  ").append(f.name).append("\n")
+        }
+        new File(outDir, "SHA256SUMS.txt").text = sums.toString()
+        println sums
+    }
+}
+tasks.matching { it.name.startsWith('assemble') }.configureEach { finalizedBy apkChecksums }

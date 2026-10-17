@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Device analysis"
+            android:textColor="@color/ink"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <LinearLayout style="@style/Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical">
+
+            <TextView style="@style/SectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1 · WHAT THIS APP COULD SEE (NO ROOT, NO adb)" />
+
+            <TextView android:id="@+id/localReport" style="@style/Mono"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView style="@style/SectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="2 · WHAT THE FIRMWARE ACTUALLY ALLOWS (NEEDS adb ON A COMPUTER)" />
+
+            <TextView style="@style/Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Copy this to a computer with adb and USB debugging enabled, then paste the output back here. The app cannot run these itself: an app is not allowed to spawn a shell." />
+
+            <TextView android:id="@+id/adbCommand" style="@style/Mono"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textIsSelectable="true" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginTop="6dp">
+
+                <Button android:id="@+id/copyCommandButton" android:layout_width="0dp"
+                    android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/copy" />
+
+                <Button android:id="@+id/copyListButton" android:layout_width="0dp"
+                    android:layout_height="wrap_content" android:layout_weight="1"
+                    android:text="Copy one-by-one" />
+            </LinearLayout>
+
+            <EditText android:id="@+id/pasteField" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="10dp"
+                android:gravity="top" android:hint="@string/paste_hint"
+                android:importantForAutofill="no" android:inputType="textMultiLine"
+                android:minLines="4" />
+
+            <Button android:id="@+id/evaluateButton" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:text="@string/evaluate" />
+
+            <TextView android:id="@+id/verdict" style="@style/Mono"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView style="@style/SectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="3 · ISOLATION SELF-TEST (RUNS ON THIS PHONE, RIGHT NOW)" />
+
+            <TextView style="@style/Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="The same code CI runs as unit tests, executed against this device's crypto provider. If a row says FAIL, do not trust the isolation claims on this phone." />
+
+            <Button android:id="@+id/selfTestButton" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                android:text="@string/run_self_test" />
+
+            <TextView android:id="@+id/selfTestResult" style="@style/Mono"
+                android:layout_width="match_parent" android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <Button android:id="@+id/copyReportButton" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Copy full report" />
+    </LinearLayout>
+</ScrollView>

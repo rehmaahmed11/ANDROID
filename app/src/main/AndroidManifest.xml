@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  No <uses-permission> at all, on purpose. Everything this app does is reachable from an
+  unprivileged install, which is the whole point: the permissions that would be needed to
+  create real Android users (CREATE_USERS, MANAGE_USERS) are signature|system and cannot be
+  granted to a sideloaded APK on a stock ROM.
+
+  (The merged manifest does end up with one entry, <applicationId>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION,
+  injected by AndroidX so its own receivers stay unexported. It is defined and held by this app
+  alone; CI prints `aapt2 dump badging` on every build so this claim stays checkable.)
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:name=".PersonaApp"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Personas">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.PersonaEditorActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.UnlockActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.JournalActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.DiagnosticsActivity" android:exported="false" />
+        <activity android:name=".ui.WorkProfileActivity" android:exported="false" />
+
+        <!--
+          Declared so ACTION_PROVISION_MANAGED_PROFILE is a legal thing to send. It is *not*
+          an active admin until the user completes the system provisioning dialog, and the
+          policy set it asks for is empty (see res/xml/device_admin.xml).
+        -->
+        <receiver
+            android:name=".system.PersonaAdminReceiver"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+                <action android:name="android.app.action.PROFILE_PROVISIONING_COMPLETE" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
