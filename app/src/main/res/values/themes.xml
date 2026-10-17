@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Personas" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorPrimaryVariant">@color/accent</item>
+        <item name="colorOnPrimary">#FFFFFFFF</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="android:statusBarColor">@color/accent</item>
+        <item name="android:windowBackground">@color/surface_alt</item>
+        <item name="android:textColorPrimary">@color/ink</item>
+        <item name="android:textColorSecondary">@color/ink_soft</item>
+    </style>
+
+    <style name="Card">
+        <item name="android:background">@drawable/bg_card</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+    </style>
+
+    <style name="SectionTitle">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textColor">@color/ink_soft</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+
+    <style name="Body">
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineSpacingExtra">3sp</item>
+        <item name="android:textColor">@color/ink</item>
+    </style>
+
+    <style name="Mono">
+        <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColor">@color/ink</item>
+    </style>
+</resources>

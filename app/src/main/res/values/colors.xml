@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ink">#FF10151F</color>
+    <color name="ink_soft">#FF5A6478</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="surface_alt">#FFF2F4F8</color>
+    <color name="accent">#FF3D5AFE</color>
+    <color name="ok">#FF1B7F4B</color>
+    <color name="warn">#FFB26A00</color>
+    <color name="bad">#FFB3261E</color>
+    <color name="unknown">#FF6B7280</color>
+    <color name="swatch_a">#FF3D5AFE</color>
+    <color name="swatch_b">#FF00897B</color>
+    <color name="swatch_c">#FFC2185B</color>
+    <color name="swatch_d">#FFF9A825</color>
+</resources>

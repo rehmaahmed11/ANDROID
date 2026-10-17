@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Personas</string>
+
+    <string name="headline">Shared-phone profiles for a device that hides them</string>
+    <string name="subhead">This app cannot create real Android users - nothing can, without root. What it can do is give each person who uses this phone a separate, PIN-locked, encrypted space inside one install.</string>
+
+    <string name="no_personas">No profiles yet. Add one for each person who uses this phone.</string>
+    <string name="add_persona">New profile</string>
+    <string name="open">Open</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="lock">Lock</string>
+    <string name="pin">PIN</string>
+
+    <string name="name_label">Name</string>
+    <string name="tagline_label">Label shown under the name (optional)</string>
+    <string name="pin_label">Unlock PIN (4+ characters, optional)</string>
+    <string name="auto_lock_label">Lock again after this many seconds in the background</string>
+    <string name="colour_label">Colour</string>
+
+    <string name="diagnostics">Device analysis</string>
+    <string name="work_profile">Work profile route</string>
+    <string name="pin_to_home">Pin icon to home screen</string>
+    <string name="remove_pin">Remove PIN</string>
+    <string name="edit">Edit</string>
+
+    <string name="journal_title">Private journal</string>
+    <string name="journal_hint">New entry - stored encrypted for this profile only</string>
+    <string name="add">Add</string>
+    <string name="empty_journal">Nothing here yet. Anything another profile types is in a different file with a different key, and is not readable from here.</string>
+    <string name="locked_vault">This vault could not be opened with the key in memory. Unlock it again.</string>
+
+    <string name="limit_heading">What is and is not possible here</string>
+    <string name="limit_body">• Real Android users/profiles are created by the system server, which demands CREATE_USERS (signature|system). A sideloaded APK can never hold it.\n• OEMs disable the feature by setting config_multiuserMaximumUsers to 1; the Settings menu entry is only the visible symptom. There is no API for an app to change that value.\n• So: this app isolates data, not processes. Two profiles here share one Linux UID, one notification shade and one app list. Do not treat it as a security boundary against a determined attacker holding an unlocked phone; treat it as separation between family members who share a device.\n• The one system-enforced option that needs no root is a managed (work) profile, offered under “Work profile route”. It is a second user in every way that matters, but it is designed for a device policy controller, not for a second person.</string>
+
+    <string name="run_self_test">Run isolation self-test</string>
+    <string name="paste_hint">Paste output from scripts/multiuser-check here</string>
+    <string name="evaluate">Evaluate</string>
+    <string name="copy">Copy</string>
+
+    <string name="wp_heading">A work profile is the closest real thing to a second user</string>
+    <string name="wp_body">Android Enterprise lets a “device policy controller” ask the system to create a managed profile: separate apps, separate encryption key, separate settings, badged icons, and its own copy of every app. No root needed. Two hard conditions apply, and neither is in this app’s control: the firmware must still support android.software.managed_users, and becoming the profile owner in this way is a one-way door that only opens when the app is the only app-owner candidate on the device.</string>
+    <string name="wp_start">Start managed-profile provisioning</string>
+    <string name="wp_open_users">Open the system Users screen</string>
+    <string name="wp_copy_adb">Copy the adb commands a technician would run</string>
+
+    <string name="ok">Done</string>
+    <string name="err_unknown">Unknown profile</string>
+    <string name="err_slow_down">Wrong PIN several times. Wait a moment before trying again.</string>
+    <string name="err_corrupt">Vault could not be re-encrypted; nothing was changed</string>
+    <string name="journal_subtitle">encrypted with %1$s · %2$s</string>
+    <string name="wp_no_provisioner">This ROM exposes no managed-profile provisioning flow</string>
+    <string name="wp_no_users_screen">No launchable Users screen - the OEM has removed the entry point</string>
+    <string name="wp_copied_adb">Copied. Run these from a computer, never from inside the app</string>
+    <string name="err_locked">Unlock the profile first</string>
+    <string name="err_short_pin">PIN must be at least 4 characters</string>
+    <string name="err_name">A name is required</string>
+    <string name="err_no_pin">This profile has no PIN set</string>
+    <string name="err_wrong_pin">Wrong PIN</string>
+    <string name="err_full">This app supports 8 profiles, which is the most that can be kept usable on a 2018 phone</string>
+    <string name="err_pin_first">Unlock with the current PIN before setting a new one</string>
+    <string name="ok_pinned">Home-screen icon requested</string>
+    <string name="ok_no_launcher">The current launcher does not accept pinned shortcuts</string>
+</resources>

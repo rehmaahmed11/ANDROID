@@ -1,0 +1,155 @@
+name: Android build
+
+# Builds on a merge to main (push), on every PR into main (so a broken build is caught before
+# it lands), and on demand. The APK is a workflow artifact on every run; on main it is also
+# published to the rolling `sideload-latest` release so it can be downloaded straight onto a phone.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Unit tests + APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
+
+    steps:
+      - name: Check out ${{ github.ref_name }}
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Install Android SDK
+        run: bash scripts/install-android-sdk.sh
+
+      - name: Show the toolchain that will be used
+        run: |
+          java -version
+          echo "compileSdk/build tools installed under $ANDROID_HOME:"
+          ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools" 2>/dev/null || true
+
+      - name: Unit tests (JVM, no emulator)
+        run: ./gradlew --no-daemon --stacktrace testDebugUnitTest
+
+      - name: Assemble debug + release APKs
+        run: ./gradlew --no-daemon --stacktrace assembleDebug assembleRelease
+
+      - name: Collect outputs
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          find app/build/outputs/apk -name '*.apk' -exec cp {} dist/ \;
+          if [ -f app/build/outputs/apk/SHA256SUMS.txt ]; then
+            cp app/build/outputs/apk/SHA256SUMS.txt dist/
+          else
+            (cd dist && sha256sum *.apk > SHA256SUMS.txt)
+          fi
+          ls -l dist
+          cat dist/SHA256SUMS.txt
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: personas-apk
+          path: dist/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: personas-apk-sha256
+          path: dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Job summary
+        when: always()
+        run: |
+          {
+            echo "## Personas build"
+            echo
+            echo "| file | bytes |"
+            echo "| --- | --- |"
+            for f in dist/*.apk; do
+              [ -e "$f" ] || continue
+              echo "| $(basename "$f") | $(stat -c%s "$f") |"
+            done
+            echo
+            echo '```'
+            cat dist/SHA256SUMS.txt 2>/dev/null || echo "no checksums"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Only on main: publish a stable download URL for sideloading, with the checksum next to it.
+  release:
+    name: Publish sideload release
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: personas-apk
+          path: release-files
+
+      - name: Download checksums
+        uses: actions/download-artifact@v4
+        with:
+          name: personas-apk-sha256
+          path: release-files
+
+      - name: Publish rolling release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          SHORT="${GITHUB_SHA::7}"
+          cat > notes.md <<EOF
+          Built from \`main\` at \`${SHORT}\` by run \`${GITHUB_RUN_ID}\`.
+
+          Verify before installing:
+
+          \`\`\`
+          $(cat release-files/SHA256SUMS.txt)
+          \`\`\`
+
+          \`app-debug-release.apk\`/\`app-release.apk\` are release-variant builds signed with the debug
+          key (no signing secret is configured in this repository). Install either; the debug build
+          has applicationId \`.debug\` so both can coexist on one phone.
+          EOF
+          gh release delete sideload-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create sideload-latest \
+            --title "Personas APK (rolling build of main)" \
+            --notes-file notes.md \
+            release-files/*.apk release-files/SHA256SUMS.txt

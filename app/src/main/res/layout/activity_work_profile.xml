@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/wp_heading"
+            android:textColor="@color/ink"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/wp_body"
+            style="@style/Body" />
+
+        <LinearLayout
+            style="@style/Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/SectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="READINESS CHECK" />
+
+            <TextView
+                android:id="@+id/wpStatus"
+                style="@style/Mono"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/provisionButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/wp_start" />
+
+        <Button
+            android:id="@+id/openUsersSettingsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/wp_open_users" />
+
+        <Button
+            android:id="@+id/copyAdbButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/wp_copy_adb" />
+
+        <LinearLayout
+            style="@style/Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/SectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="WHAT THE adb ROUTE MEANS" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="pm create-user needs CREATE_USERS, which the shell holds on some builds. Where the ceiling is 1 it fails anyway with 'Maximum user limit is reached'. It is the honest way to check whether your phone can do this at all - and it is a command you run, not a permission this app can borrow."
+                style="@style/Body" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

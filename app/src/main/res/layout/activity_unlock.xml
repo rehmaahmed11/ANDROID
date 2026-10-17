@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:padding="28dp">
+
+    <TextView
+        android:id="@+id/avatar"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:background="@drawable/bg_avatar"
+        android:gravity="center"
+        android:textColor="#FFFFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/unlockName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:textColor="@color/ink"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="This profile has its own encryption key. Nothing here is readable from another profile, and there is no recovery path - the key is derived from the PIN."
+        style="@style/Body"
+        android:textColor="@color/ink_soft" />
+
+    <EditText
+        android:id="@+id/pinField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:hint="@string/pin"
+        android:importantForAutofill="no"
+        android:inputType="textPassword"
+        android:maxLength="64" />
+
+    <Button
+        android:id="@+id/unlockButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Unlock" />
+
+    <TextView
+        android:id="@+id/unlockError"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/bad"
+        android:textSize="13sp"
+        android:visibility="gone" />
+</LinearLayout>
