@@ -82,7 +82,7 @@ jobs:
           ./gradlew --no-daemon lintDebug 2>&1 | tee "$RUNNER_TEMP/lint.log" || true
           body=$(
             {
-              grep -E "^ *(Error|Warning): " "$RUNNER_TEMP/lint.log" 2>/dev/null | head -n 20
+              grep -oE "[^ ]+\.(kt|xml):[0-9]+: (Error|Warning): .*\[[A-Za-z0-9_]+\]" "$RUNNER_TEMP/lint.log" 2>/dev/null | head -n 20
               echo "--- lint-results-debug.txt ---"
               sed -n '1,80p' app/build/reports/lint-results-debug.txt 2>/dev/null | tail -n 50
             } | sed -e 's/[[:space:]]*$//' -e '/^$/d' -e 's/%/%25/g' -e 's/:/%3A/g'
@@ -102,6 +102,40 @@ jobs:
           fi
           ls -l dist
           cat dist/SHA256SUMS.txt
+
+      # The runner is the only place with both the APK and aapt2/apksigner, so the checks that
+      # matter for a sideload (identity, SDK floors, permission surface, signature) run here and
+      # are published as an annotation: readable through /check-runs/{id}/annotations without
+      # needing the artifact blob host.
+      - name: Verify the produced APKs
+        run: |
+          set -euo pipefail
+          AAPT2="$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | head -1)"
+          APKSIGNER="$(ls "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | head -1 || true)"
+          summary=dist/apk-verification.txt
+          : > "$summary"
+          for a in dist/*.apk; do
+            {
+              echo "#### $(basename "$a")  $(stat -c%s "$a") bytes  sha256=$(sha256sum "$a" | cut -c1-64)"
+              "$AAPT2" dump badging "$a" 2>/dev/null |
+                grep -E "^(package:|sdkVersion:|targetSdkVersion:|uses-permission|application-label|launchable-activity|feature)" || true
+              echo "entries: $(unzip -l "$a" | tail -1 | awk '{print $2}')"
+              if [ -n "${APKSIGNER:-}" ]; then
+                "$APKSIGNER" verify --print-certs "$a" 2>&1 |
+                  grep -E "^Verifies|Signer #1 certificate SHA-256|DOES NOT VERIFY|verified using" || true
+              fi
+              echo
+            } | tee -a "$summary"
+          done
+          {
+            echo "### APK verification (aapt2 + apksigner, run on the build machine)"
+            echo
+            echo '```'
+            cat "$summary"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          oneline=$(sed -e 's/%/%25/g' -e 's/:/%3A/g' "$summary" | awk 'NR==1{printf "%s",$0;next}{printf "%%0A%s",$0}')
+          printf '::notice::apk-verification|%s\n' "${oneline:0:15000}"
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
