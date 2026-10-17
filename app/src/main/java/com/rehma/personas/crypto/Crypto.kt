@@ -99,7 +99,8 @@ object Crypto {
         }
     }
 
+    fun hex(bytes: ByteArray): String = bytes.joinToString("") { "%02x".format(it) }
+
     fun sha256Hex(bytes: ByteArray): String =
-        MessageDigest.getInstance("SHA-256").digest(bytes)
-            .joinToString("") { "%02x".format(it) }
+        hex(MessageDigest.getInstance("SHA-256").digest(bytes))
 }
