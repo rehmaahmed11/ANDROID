@@ -33,11 +33,11 @@ class CryptoTest {
     fun pbkdf2MatchesPublishedVectors() {
         assertEquals(
             "120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b",
-            Crypto.sha256Hex(Crypto.pbkdf2("password", "salt".toByteArray(), 1, 32)),
+            Crypto.sha256Hex(Crypto.pbkdf2("password", "salt".toByteArray(), 1)),
         )
         assertEquals(
             "9446e2c5ca10e6da1894b7266fea28fa5695ec3485acb77ecf35efb4a01248d5",
-            Crypto.sha256Hex(Crypto.pbkdf2("password", "password".toByteArray(), 4096, 32)),
+            Crypto.sha256Hex(Crypto.pbkdf2("password", "password".toByteArray(), 4096)),
         )
     }
 
