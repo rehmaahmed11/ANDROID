@@ -136,7 +136,7 @@ class WorkProfileActivity : AppCompatActivity() {
             }.getOrDefault(false)
             if (ok) return
         }
-        startActivity(Intent(Intent.ACTION_SETTINGS))
+        startActivity(Intent(android.provider.Settings.ACTION_SETTINGS))
         Toast.makeText(this, R.string.wp_no_users_screen, Toast.LENGTH_LONG).show()
     }
 

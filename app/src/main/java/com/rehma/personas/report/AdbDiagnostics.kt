@@ -20,6 +20,20 @@ data class Diagnostic(
 
 object AdbDiagnostics {
 
+    /**
+     * The read-only queries that establish what the firmware permits, each with the reason it
+     * matters. Printed for the user to run: an app may not spawn a shell, so this is the
+     * boundary drawn explicitly instead of being quietly crossed.
+     */
+    val COMMANDS: List<Pair<String, String>> = listOf(
+        "model, release, build type" to "adb shell getprop ro.product.model && adb shell getprop ro.build.type && adb shell getprop ro.build.version.release",
+        "how many users the firmware will create" to "adb shell pm get-max-users",
+        "users that already exist" to "adb shell pm list users",
+        "OEM multi-user switches" to "adb shell getprop fw.max_users && adb shell getprop fw.show_multiuserui",
+        "work-profile capability flag" to "adb shell pm list features | grep managed_users",
+        "policy restrictions on the owner" to "adb shell dumpsys user | grep -i -E 'DISALLOW_ADD_USER|MAX_USERS'",
+    )
+
     /** `@tag` on its own line, value on the next. Parsed by [parse]. */
     val BATCH: String = "adb shell 'echo @model; getprop ro.product.model; " +
         "echo @release; getprop ro.build.version.release; " +

@@ -236,7 +236,7 @@ object DeviceProbe {
         capabilities.forEach { c ->
             append("[").append(c.badge).append("] ").append(c.label).append('\n')
             append("    ").append(c.value).append('\n')
-            append("    ").append(c.note).append('\n\n')
+            append("    ").append(c.note).append("\n\n")
         }
     }
 
