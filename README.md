@@ -91,7 +91,10 @@ Deleting a profile inside the app erases only that profile's files.
 ## 4. If you want real system users (the part no app can do)
 
 Run `scripts/multiuser-check.sh` (or `.bat`) with the phone connected, and look at
-`@maxusers`:
+`@maxusers` — that number comes from `adb shell pm get-max-users`. If your build's `pm` has no
+such subcommand it prints its usage text instead; read `adb shell getprop fw.max_users` and use
+`pm list users`. Where a value cannot be read, the app and the script record UNKNOWN rather than
+guessing one, which is deliberate: a wrong "1" would tell you the door is shut when it is open.
 
 * **greater than 1** → the OS supports users; only the Settings menu is hidden. Create them from a
   computer:
