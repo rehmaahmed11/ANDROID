@@ -79,7 +79,9 @@ object PersonasCodec {
     }
 
     internal fun decodeValue(value: String): String {
-        val out = ArrayList<Byte>(value.length)
+        // ByteArrayOutputStream rather than ArrayList<Byte>: a ByteArray is not a
+        // Collection<Byte>, so there is nothing sensible to addAll() into here.
+        val out = java.io.ByteArrayOutputStream(value.length)
         var i = 0
         while (i < value.length) {
             val c = value[i]
@@ -89,18 +91,18 @@ object PersonasCodec {
                     if (byte == null) {
                         // Not an escape after all: keep the remainder verbatim rather than
                         // inventing a replacement character for a hand-edited file.
-                        out.addAll(value.substring(i).toByteArray(Charsets.UTF_8))
-                        return String(out.toByteArray(), Charsets.UTF_8)
+                        out.write(value.substring(i).toByteArray(Charsets.UTF_8))
+                        return out.toString("UTF-8")
                     }
-                    out.add(byte.toByte())
+                    out.write(byte)
                     i += 3
                 }
                 else -> {
-                    out.addAll(c.toString().toByteArray(Charsets.UTF_8))
+                    out.write(c.toString().toByteArray(Charsets.UTF_8))
                     i++
                 }
             }
         }
-        return String(out.toByteArray(), Charsets.UTF_8)
+        return out.toString("UTF-8")
     }
 }
