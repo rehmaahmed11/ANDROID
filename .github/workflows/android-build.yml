@@ -90,7 +90,7 @@ jobs:
           retention-days: 90
 
       - name: Job summary
-        when: always()
+        if: always()
         run: |
           {
             echo "## Personas build"
