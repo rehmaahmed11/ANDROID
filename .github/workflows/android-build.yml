@@ -1,7 +1,7 @@
 name: Android build
 
-# Builds on a merge to main (push), on every PR into main (so a broken build is caught before
-# it lands), and on demand. The APK is a workflow artifact on every run; on main it is also
+# Runs on a merge to main (push), on every PR into main (so a broken build is caught before it
+# lands), and on demand. The APK is a workflow artifact on every run; on main it is also
 # published to the rolling `sideload-latest` release so it can be downloaded straight onto a phone.
 
 on:
@@ -51,14 +51,24 @@ jobs:
       - name: Show the toolchain that will be used
         run: |
           java -version
-          echo "compileSdk/build tools installed under $ANDROID_HOME:"
+          echo "installed under ANDROID_HOME=$ANDROID_HOME:"
           ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools" 2>/dev/null || true
 
+      # pipefail matters here: `gradlew | tee` would otherwise report tee's status and turn a
+      # red build green.
       - name: Unit tests (JVM, no emulator)
-        run: ./gradlew --no-daemon --stacktrace testDebugUnitTest
+        run: |
+          set -eo pipefail
+          ./gradlew --no-daemon testDebugUnitTest 2>&1 | tee "$RUNNER_TEMP/test.log"
 
       - name: Assemble debug + release APKs
-        run: ./gradlew --no-daemon --stacktrace assembleDebug assembleRelease
+        run: |
+          set -eo pipefail
+          ./gradlew --no-daemon assembleDebug assembleRelease 2>&1 | tee "$RUNNER_TEMP/assemble.log"
+
+      - name: Surface the failure in the job summary and annotations
+        if: failure()
+        run: bash scripts/ci-dump-log.sh
 
       - name: Collect outputs
         run: |
@@ -103,11 +113,11 @@ jobs:
             done
             echo
             echo '```'
-            cat dist/SHA256SUMS.txt 2>/dev/null || echo "no checksums"
+            cat dist/SHA256SUMS.txt 2>/dev/null || echo "no APK produced - see the failure extract above"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # Only on main: publish a stable download URL for sideloading, with the checksum next to it.
+  # Only on main: a stable download URL for sideloading, with the checksum beside it.
   release:
     name: Publish sideload release
     needs: build
@@ -144,9 +154,9 @@ jobs:
           $(cat release-files/SHA256SUMS.txt)
           \`\`\`
 
-          \`app-debug-release.apk\`/\`app-release.apk\` are release-variant builds signed with the debug
-          key (no signing secret is configured in this repository). Install either; the debug build
-          has applicationId \`.debug\` so both can coexist on one phone.
+          The release APK is signed with the debug key: no signing secret is configured in this
+          repository, so this is a sideload build and not a Play Store upload. The debug variant
+          has applicationId \`.debug\`, so both can be installed side by side.
           EOF
           gh release delete sideload-latest --yes --cleanup-tag 2>/dev/null || true
           gh release create sideload-latest \

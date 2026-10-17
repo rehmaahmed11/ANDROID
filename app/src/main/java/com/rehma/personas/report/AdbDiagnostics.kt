@@ -52,12 +52,12 @@ object AdbDiagnostics {
                 val key = tagged.groupValues[1]
                 val value = tagged.groupValues.getOrNull(2)?.trim().orEmpty()
                 if (key in TAGS) {
-                    if (value.isNotEmpty()) out[key] = value else pending = key
+                    if (value.isNotEmpty()) out[key] = normalise(key, value) else pending = key
                 }
                 continue
             }
             if (pending != null) {
-                out[pending] = line
+                out[pending] = normalise(pending, line)
                 pending = null
                 continue
             }
@@ -74,6 +74,10 @@ object AdbDiagnostics {
         }
         return out
     }
+
+    /** `pm get-max-users` prints prose; only the trailing number is meaningful. */
+    private fun normalise(key: String, value: String): String =
+        if (key == "maxusers") value.substringAfterLast(':').trim().ifEmpty { value.trim() } else value.trim()
 
     fun evaluate(facts: Map<String, String>): List<Diagnostic> {
         val list = ArrayList<Diagnostic>()

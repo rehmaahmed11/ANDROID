@@ -181,8 +181,8 @@ object IsolationSelfTest {
      */
     private fun tempDir(): File {
         val base = File(System.getProperty("java.io.tmpdir") ?: System.getProperty("user.dir") ?: ".")
-        val dir = File(base, "personas-selftest-${'$'}{System.nanoTime()}")
-        check(dir.mkdirs() || dir.isDirectory) { "cannot create ${'$'}dir" }
+        val dir = File(base, "personas-selftest-" + System.nanoTime())
+        check(dir.mkdirs() || dir.isDirectory) { "cannot create " + dir }
         return dir
     }
 
