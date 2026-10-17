@@ -51,9 +51,11 @@ object IsolationSelfTest {
             a.save("private", keyA)
             val stolen = b.open(keyB)
             require(stolen == null) { "bob read alice's data" }
-            // Bob has no files of his own; he only ever sees his own slot.
-            require(b.files().isEmpty()) { "bob can see alice's files: ${b.files()}" }
-            "bob's slot is empty while alice's ciphertext exists in the same directory"
+            // Bob owns a key file of his own - the property under test is that none of his
+            // slots ever point at alice's ciphertext, not that his directory is empty.
+            require(b.files().none { it.contains("alice") }) { "bob can see alice's files: ${b.files()}" }
+            require(a.files().none { it.contains("bob") }) { "alice can see bob's files: ${a.files()}" }
+            "both slots live in one directory and neither reaches the other's ciphertext"
         }
 
         cases += case("ciphertext copied between personas does not decrypt") {

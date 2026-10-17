@@ -19,6 +19,18 @@ extract_for() {
   tail -n 12 "$f"
 }
 
+# JUnit XML is the authoritative list of which tests failed and why; Gradle's console output
+# truncates it. Parse it if present so one CI run is enough to act on.
+test_failures() {
+  local dir="$GITHUB_WORKSPACE/app/build/test-results"
+  [ -d "$dir" ] || return 0
+  find "$dir" -name 'TEST-*.xml' -print0 2>/dev/null | xargs -0 cat 2>/dev/null |
+    tr '\n' ' ' |
+    grep -o '<testcase[^>]*>[^<]*<failure[^>]*message="[^"]*"' 2>/dev/null |
+    sed -e 's/.*name="\([^"]*\)".*classname="\([^"]*\)".*message="\([^"]*\)".*/\2.\1: \3/' |
+    cut -c1-300 | head -n 12
+}
+
 # Human-readable copy in the job summary (visible in the Actions UI).
 {
   echo "### Gradle failure extract"
@@ -28,6 +40,8 @@ extract_for() {
     echo "#### $(basename "$f")"
     echo '```'
     extract_for "$f"
+    echo "----- failing tests -----"
+    test_failures || true
     echo '```'
   done
 } >>"${GITHUB_STEP_SUMMARY:-/dev/stdout}"
@@ -36,7 +50,7 @@ extract_for() {
 for f in "$LOGDIR/test.log" "$LOGDIR/assemble.log"; do
   [ -s "$f" ] || continue
   name=$(basename "$f")
-  body=$(extract_for "$f" | sed -e 's/[[:space:]]*$//' -e '/^$/d')
+  body=$( { extract_for "$f"; echo "--- failing tests ---"; test_failures || true; } | sed -e 's/[[:space:]]*$//' -e '/^$/d')
   [ -n "$body" ] || continue
   escaped=$(printf '%s' "$body" | sed -e 's/%/%25/g' -e 's/:/%3A/g')
   oneline=$(printf '%s' "$escaped" | awk 'NR==1{printf "%s", $0; next} {printf "%%0A%s", $0}')
